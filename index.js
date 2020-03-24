@@ -19,10 +19,6 @@ bot.use((ctx, next) => {
     next();
 })
 
-bot.command('test', (ctx) => {
-    ctx.reply('Esto es una prueba');
-});
-
 bot.command('camara', ctx => {
     camara().then(async infocam => {
         await bot.telegram.sendMessage(ctx.userId, infocam.camName);
