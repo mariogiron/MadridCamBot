@@ -2,6 +2,8 @@ const axios = require('axios');
 const parser = require('fast-xml-parser');
 const geolib = require('geolib');
 
+const { Camera } = require('../db')
+
 const getCams = async () => {
     // Descargamos la información de la páginas de las cámaras
     const { data } = await axios.get('https://datos.madrid.es/egob/catalogo/202088-0-trafico-camaras.kml');
@@ -17,7 +19,7 @@ const parseCamInfo = (description) => {
     const urlEndIndex = description.indexOf(' ', urlStartIndex);
     const urlImage = description.substring(urlStartIndex, urlEndIndex);
 
-    const nombre = urlImage.substring(urlImage.indexOf('Camara'), urlImage.indexOf('.jpg'));
+    const nombre = urlImage.substring(urlImage.indexOf('Camara') + 6, urlImage.indexOf('.jpg'));
 
     return ({ name: nombre, url: urlImage });
 }
@@ -33,6 +35,9 @@ const randomCam = () => {
         const camName = camaraSeleccionada.ExtendedData.Data[1].Value;
 
         const camInfo = parseCamInfo(camaraSeleccionada.description);
+
+        await Camera.create({ name: camInfo.name, address: camName, url_image: camInfo.url });
+
         resolve({ ...camInfo, camName: camName });
         // Descarga la imagen
         //const { body } = await got(urlImage, { responseType: 'buffer' });
@@ -57,6 +62,9 @@ const closest = (latitude, longitude) => {
         });
         const camName = closest.cam.ExtendedData.Data[1].Value;
         const camInfo = parseCamInfo(closest.cam.description);
+
+        await Camera.create({ name: camInfo.name, address: camName, url_image: camInfo.url });
+
         resolve({ ...camInfo, camName: camName });
     });
 }
